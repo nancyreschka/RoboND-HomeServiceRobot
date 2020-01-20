@@ -1,21 +1,17 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
+#include "add_markers/PositionAction.h"
 
-int main( int argc, char** argv )
+enum PositionName {PICKUP = 1, HIDE, DROPOFF};
+ros::Publisher marker_pub;
+bool showMarker = true;
+
+void printMarker(PositionName pos)
 {
-  // initialize ROS and create publisher on visualization_marker topic
-  ros::init(argc, argv, "add_markers");
-  ros::NodeHandle n;
-  ros::Rate r(1);
-  ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-
-  // Set our initial shape type to be a cube
-  uint32_t shape = visualization_msgs::Marker::CUBE;
-
-  while (ros::ok())
+  if (ros::ok())
   {
     visualization_msgs::Marker marker;
-    // Set the frame ID and timestamp.  See the TF tutorials for information on these.
+    // Set the frame ID and timestamp.
     marker.header.frame_id = "/map";
     marker.header.stamp = ros::Time::now();
 
@@ -24,15 +20,15 @@ int main( int argc, char** argv )
     marker.ns = "add_markers";
     marker.id = 0;
 
-    // Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-    marker.type = shape;
+    // Set the marker typeto CUBE
+    marker.type = visualization_msgs::Marker::CUBE;
 
     // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
     marker.action = visualization_msgs::Marker::ADD;
 
     // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
-    marker.pose.position.x = 1;
-    marker.pose.position.y = 1;
+    marker.pose.position.x = -2;
+    marker.pose.position.y = 2;
     marker.pose.position.z = 0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
@@ -51,42 +47,88 @@ int main( int argc, char** argv )
     marker.color.a = 1.0;
 
     marker.lifetime = ros::Duration();
-    ROS_INFO("Marker ready");
-
-    // Publish the marker
+    
+    // as soon as a subscriber is available publish the marker
     while (marker_pub.getNumSubscribers() < 1)
     {
       if (!ros::ok())
       {
-        return 0;
+        ROS_WARN_ONCE("ROS not working");
       }
       ROS_WARN_ONCE("Please create a subscriber to the marker");
       sleep(1);
     }
-    // publish marker at pickup zone
-    marker_pub.publish(marker);
-    ROS_INFO("Marker pickup published");
 
-    // pause 5 seconds
-    ros::Duration(5.0).sleep();
-
-    // hide marker
-    marker.action = visualization_msgs::Marker::DELETE;
-    //marker.color.a = 0.0;
-    marker_pub.publish(marker);
-    ROS_INFO("Marker hidden");
-
-    // pause 5 seconds
-    ros::Duration(5.0).sleep();
-
-    // publish marker at drop off zone zone
-    marker.pose.position.x = -2;
-    marker.pose.position.y = -2;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker_pub.publish(marker);
-    ROS_INFO("Marker dropoff published");
-    ros::Duration(5.0).sleep();
-
-    r.sleep();
+    // depending on the action to perform show or hide the marker at the specific position
+    switch(pos)
+    {
+      case PICKUP:
+        // show marker only once at startup
+        if (showMarker)
+        {
+          showMarker = false;
+          ROS_INFO("show marker pickup");
+          // publish marker at pickup zone
+          marker_pub.publish(marker);
+        }
+        break;        
+      case HIDE:
+        ROS_INFO("hide marker");
+        marker.action = visualization_msgs::Marker::DELETE;
+        marker_pub.publish(marker);
+        // pause 5 seconds
+        ros::Duration(5.0).sleep();
+        break;
+      case DROPOFF:
+        ROS_INFO("show marker dropoff");
+        marker.pose.position.x = 4;
+        marker.pose.position.y = -2;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker_pub.publish(marker);
+        break;
+    }
   }
+}
+
+// callback function for service server to handle position actions
+bool handle_position_action(add_markers::PositionAction::Request& req,
+                  add_markers::PositionAction::Response& res)
+{
+  if(req.action == 1){
+    ROS_INFO("PositionAction for service received - action: pickup (%d)", (int)req.action);
+    printMarker(PICKUP);
+  }
+  else if (req.action == 2){
+    ROS_INFO("PositionAction for service received - action: hide (%d)", (int)req.action);
+    printMarker(HIDE);
+  }
+  else if (req.action == 3){
+    ROS_INFO("PositionAction for service received - action: dropoff (%d)", (int)req.action);
+    printMarker(DROPOFF);
+  }
+  else
+    ROS_INFO("PositionAction for service received - action:%d", (int)req.action);
+
+  // Return a response message
+  res.msg_feedback = "PositionAction: " + std::to_string(req.action) + " performed.";
+  ROS_INFO_STREAM(res.msg_feedback);
+  return true;
+}
+
+int main( int argc, char** argv )
+{
+  // initialize ROS and create publisher on visualization_marker topic
+  ros::init(argc, argv, "add_markers");
+  ros::NodeHandle n;
+  ros::Rate r(1);
+  marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+  
+  // Define a add_markers service with a handle_position_action callback function
+  ros::ServiceServer service = n.advertiseService("/add_markers/PositionAction", handle_position_action);
+
+  // show marker at initial position
+  printMarker(PICKUP);
+
+  // Handle ROS communication events
+  ros::spin();
 }
