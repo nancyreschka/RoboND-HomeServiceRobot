@@ -1,5 +1,9 @@
 #!/bin/bash
 
+killall gazebo
+killall gzserver
+killall gzclient
+
 cd /home/robond/workspace/catkin_ws; 
 source /home/robond/workspace/catkin_ws/devel/setup.bash;
 export TURTLEBOT_GAZEBO_WORLD_FILE=/home/robond/workspace/catkin_ws/src/RoboND-HomeServiceRobot/map/nancys_world.world
@@ -11,6 +15,6 @@ sleep 5
 xterm -e "roslaunch turtlebot_gazebo amcl_demo.launch" &
 sleep 5
 xterm -e "rosrun rviz rviz -d $RVIZ_CONFIG" &
-sleep 10
-xterm -e "rosrun pick_objects pick_objects" &
+sleep 5
 xterm -e "rosrun add_markers add_markers" &
+xterm -e "rosrun pick_objects pick_objects" &
