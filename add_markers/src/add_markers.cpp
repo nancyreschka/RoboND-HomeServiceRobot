@@ -64,13 +64,10 @@ void printMarker(PositionName pos)
     {
       case PICKUP:
         // show marker only once at startup
-        if (showMarker)
-        {
-          showMarker = false;
-          ROS_INFO("show marker pickup");
-          // publish marker at pickup zone
-          marker_pub.publish(marker);
-        }
+        showMarker = false;
+        ROS_INFO("show marker pickup");
+        // publish marker at pickup zone
+        marker_pub.publish(marker);
         break;        
       case HIDE:
         ROS_INFO("hide marker");
@@ -127,7 +124,9 @@ int main( int argc, char** argv )
   ros::ServiceServer service = n.advertiseService("/add_markers/PositionAction", handle_position_action);
 
   // show marker at initial position
-  printMarker(PICKUP);
+  if(showMarker){
+    printMarker(PICKUP);
+  }
 
   // Handle ROS communication events
   ros::spin();
