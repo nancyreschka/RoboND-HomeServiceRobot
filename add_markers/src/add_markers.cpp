@@ -83,6 +83,9 @@ void printMarker(PositionName pos)
         marker.action = visualization_msgs::Marker::ADD;
         marker_pub.publish(marker);
         break;
+      default:
+        ROS_INFO("add_markers - Invalid request received");
+        break;
     }
   }
 }
@@ -104,10 +107,14 @@ bool handle_position_action(add_markers::PositionAction::Request& req,
     printMarker(DROPOFF);
   }
   else
-    ROS_INFO("PositionAction for service received - action:%d", (int)req.action);
+    ROS_INFO("PositionAction for service received - INVALID action:%d", (int)req.action);
 
   // Return a response message
-  res.msg_feedback = "PositionAction: " + std::to_string(req.action) + " performed.";
+  res.msg_feedback = "PositionAction: " + std::to_string(req.action);
+  if (req.action == 1 || req.action == 2 || req.action == 3)
+    res.msg_feedback += " performed.";
+  else
+    res.msg_feedback += " NOT performed.";
   ROS_INFO_STREAM(res.msg_feedback);
   return true;
 }
