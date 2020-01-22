@@ -225,6 +225,6 @@ The robot is navigated in the map using the ROS navigation stack which is based 
 The navigation goals are send to the move_base server through a SimpleActionClient from the pick_objects node in the pick_objects package.
 
 Here is an example how the robot navigates to a goal where the navigation goal is send through the "2D Nav Goal" in RViz:
-![alt text](images/localization.gif)
+![alt text](images/navigation.gif)
 
 Here is some more documentation on how to send a single goal position and orientation to the ROS navigation stack: http://wiki.ros.org/navigation/Tutorials/SendingSimpleGoals.
