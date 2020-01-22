@@ -25,6 +25,10 @@ After launching the world the building, the obstacles, and the turtlebot are dis
     │   ├── package.xml                         # package info
     ├── images                                  # output images
     │   ├── homeServiceRobot.gif
+    │   ├── localization_goal.png
+    │   ├── localization_startup.png
+    │   ├── mapping.png
+    │   ├── navigation.gif
     ├── map                                     # map files
     │   │   ├── nancys_map.gpm                  # contains a map file for the world
     │   │   ├── nancys_map.yaml                 # contains parameters for nancys_map.gpm
@@ -198,7 +202,7 @@ For more information please visit http://wiki.ros.org/turtlebot_gazebo.
 
 ## Performed tasks
 
-### mapping
+### Mapping
 
 In this project I mapped the environment with the robot using SLAM (Simultaneous Localization and Mapping). The map was generated based on laser data. It is a 2-D grid map, in which each cell represents the probability of occupancy. Occupancy probabilities are in the range [0,100] and unknown cells are -1.
 
@@ -210,7 +214,7 @@ The generated map was saved in the map directory as nancys_map.pgm and nancys_ma
 $ rosrun map_server map_saver -f /home/robond/workspace/catkin_ws/src/RoboND-HomeServiceRobot/map/nancys_map
 ```
 
-### localization
+### Localization
 
 For localizing the robot I used the Adaptive Monte Carlo Localization (AMCL) which dynamically adjusts the number of particles over a period of time, as the robot navigates around in a map. Here you can see the particles that  guess the robot's position at startup:
 ![alt text](images/localization_startup.png)
@@ -218,7 +222,7 @@ For localizing the robot I used the Adaptive Monte Carlo Localization (AMCL) whi
 And after the robot moved a bit around the particles converge at the robot's actual position:
 ![alt text](images/localization_goal.png)
 
-### navigation
+### Navigation
 
 The robot is navigated in the map using the ROS navigation stack which is based on the Dijkstra's, a variant of the Uniform Cost Search algorithm, to plan the robot trajectory from start to goal position. The ROS navigation stack permits the robot to avoid any obstacle on its path by re-planning a new trajectory once the robot encounters them.
 
